@@ -114,7 +114,16 @@ SELECT StockItemID, StockItemName, UnitPrice, nm,
    В результатах должны быть ид и фамилия сотрудника, ид и название клиента, дата продажи, сумму сделки.
 */
 
-Select top(1) with ties *From    (    Select i.SalespersonPersonID, p.FullName, i.CustomerID, a.FullName as NameCustomer, i.InvoiceDate, l.ExtendedPrice    From Sales.Invoices i         Join Application.People p on p.PersonID = i.SalespersonPersonID         Join Sales.InvoiceLines l on i.InvoiceID = l.InvoiceID         Join Application.People a on a.PersonID = i.CustomerID    ) AS tblOrder by row_number() OVER (partition by SalespersonPersonID order by InvoiceDate desc);
+Select top(1) with ties *
+From
+    (
+    Select i.SalespersonPersonID, p.FullName, i.CustomerID, a.FullName as NameCustomer, i.InvoiceDate, l.ExtendedPrice
+    From Sales.Invoices i
+         Join Application.People p on p.PersonID = i.SalespersonPersonID
+         Join Sales.InvoiceLines l on i.InvoiceID = l.InvoiceID
+         Join Application.People a on a.PersonID = i.CustomerID
+    ) AS tbl
+Order by row_number() OVER (partition by SalespersonPersonID order by InvoiceDate desc);
 
 
 /*
@@ -122,9 +131,16 @@ Select top(1) with ties *From    (    Select i.SalespersonPersonID, p.FullNam
 В результатах должно быть ид клиета, его название, ид товара, цена, дата покупки.
 */
 
-Select CustomerID, FullName, StockItemID, UnitPrice, InvoiceDateFrom        (       Select row_number() OVER (partition by CustomerID order by InvoiceDate DESC) as RN,              i.CustomerID, P.FullName, l.StockItemID, l.UnitPrice, i.InvoiceDate       From Sales.Invoices i            join Application.People p on p.PersonID = i.CustomerID            join Sales.InvoiceLines l on i.InvoiceID = l.InvoiceID        ) AS tblWHERE RN <= 2Order by CustomerID, UnitPrice DESC
-
-
-
+Select CustomerID, FullName, StockItemID, UnitPrice, InvoiceDate
+From 
+       (
+       Select row_number() OVER (partition by CustomerID order by InvoiceDate DESC) as RN,
+              i.CustomerID, P.FullName, l.StockItemID, l.UnitPrice, i.InvoiceDate
+       From Sales.Invoices i
+            join Application.People p on p.PersonID = i.CustomerID
+            join Sales.InvoiceLines l on i.InvoiceID = l.InvoiceID
+        ) AS tbl
+WHERE RN <= 2
+Order by CustomerID, UnitPrice DESC
 
 Опционально можете для каждого запроса без оконных функций сделать вариант запросов с оконными функциями и сравнить их производительность. 
